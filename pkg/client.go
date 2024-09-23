@@ -32,75 +32,123 @@ type NameUrl struct {
 	Name string `json:"name"`
 	Url  string `json:"url"`
 }
-
-type Url struct {
-	Url string `json:"url"`
-}
-type EffectEntry struct {
-	Effect   string  `json:"effect"`
-	Language NameUrl `json:"language"`
-}
-type EffectChanges struct {
-	EffectEntries []EffectEntry `json:"effect_entries"`
-	VersionGroup  NameUrl       `json:"version_group"`
-}
-type FlavorTextEntry struct {
-	FlavorText   string  `json:"flavor_text"`
-	Language     NameUrl `json:"language"`
-	VersionGroup NameUrl `json:"version_group"`
-}
-type Name struct {
-	Name     string  `json:"name"`
-	Language NameUrl `json:"language"`
-}
-type Pokemon struct {
+type Ability struct {
+	Ability  NameUrl `json:"ability"`
 	IsHidden bool    `json:"is_hidden"`
-	Pokemon  NameUrl `json:"pokemon"`
 	Slot     int     `json:"slot"`
 }
-type Ability struct {
-	Name              string            `json:"name"`
-	IsMainSeries      bool              `json:"is_main_series"`
-	Generation        map[string]string `json:"generation"`
-	EffectEntries     []EffectEntry     `json:"effect_entries"`
-	EffectChanges     []EffectChanges   `json:"effect_changes"`
-	FlavorTextEntries []FlavorTextEntry `json:"flavor_text_entries"`
-	Names             []Name            `json:"names"`
-	Pokemon           []Pokemon         `json:"pokemon"`
+
+type Cries struct {
+	Latest string `json:"latest"`
+	Legacy string `json:"legacy"`
 }
 
-type Description struct {
-	Description string  `json:"description"`
-	Language    NameUrl `json:"language"`
+type GameIndex struct {
+	GameIndex int     `json:"game_index"`
+	Version   NameUrl `json:"version"`
 }
 
-type Characteristics struct {
-	Descriptions   []Description `json:"descriptions"`
-	GeneModulo     int           `json:"gene_modulo"`
-	HighestStat    NameUrl       `json:"highest_stat"`
-	Id             int           `json:"id"`
-	PossibleValues []int         `json:"possible_values"`
+type VersionDetail struct {
+	Rarity  int     `json:"rarity"`
+	Version NameUrl `json:"version"`
 }
 
-type EggGroup struct {
-	Id             int       `json:"id"`
-	Name           string    `json:"name"`
-	Names          []Name    `json:"names"`
-	PokemonSpecies []NameUrl `json:"pokemon_species"`
+type HeldItem struct {
+	Item          NameUrl         `json:"item"`
+	VersionDetail []VersionDetail `json:"version_details"`
 }
 
-type NamedList struct {
+type VersionGroupDetail struct {
+	LevelLearnedAt  int     `json:"level_learned_at"`
+	MoveLearnMethod NameUrl `json:"move_learn_method"`
+	VersionGroup    NameUrl `json:"version_group"`
+}
+
+type Move struct {
+	Move                NameUrl              `json:"move"`
+	VersionGroupDetails []VersionGroupDetail `json:"version_group_details"`
+}
+type DreamWorld struct {
+	FrontDefault string `json:"front_default"`
+	FrontFemale  string `json:"front_female"`
+}
+
+type Home struct {
+	FrontDefault     string `json:"front_default"`
+	FrontFemale      string `json:"front_female"`
+	FrontShiny       string `json:"front_shiny"`
+	FrontShinyFemale string `json:"front_shiny_female"`
+}
+
+type OfficialArtwork struct {
+	FrontDefault string `json:"front_default"`
+	FrontShiny   string `json:"front_shiny"`
+}
+
+type Showdown struct {
+	BackDefault      string `json:"back_default"`
+	BackFemale       string `json:"back_female"`
+	BackShiny        string `json:"back_shiny"`
+	BackShinyFemale  string `json:"back_shiny_female"`
+	FrontDefault     string `json:"front_default"`
+	FrontFemale      string `json:"front_female"`
+	FrontShiny       string `json:"front_shiny"`
+	FrontShinyFemale string `json:"front_shiny_female"`
+}
+type other struct {
+	DreamWorld      DreamWorld      `json:"dream_world"`
+	Home            Home            `json:"home"`
+	OfficialArtwork OfficialArtwork `json:"official-artwork"`
+	Showdown        Showdown        `json:"showdown"`
+}
+
+type Sprite struct {
+	BackDefault      string `json:"back_default"`
+	BackFemale       string `json:"back_female"`
+	BackShiny        string `json:"back_shiny"`
+	BackShinyFemale  string `json:"back_shiny_female"`
+	FrontDefault     string `json:"front_default"`
+	FrontFemale      string `json:"front_female"`
+	FrontShiny       string `json:"front_shiny"`
+	FrontShinyFemale string `json:"front_shiny_female"`
+	Other            other  `json:"other"`
+}
+
+type Stat struct {
+	BaseStat int     `json:"base_stat"`
+	Effort   int     `json:"effort"`
+	Stat     NameUrl `json:"stat"`
+}
+
+type Type struct {
+	Slot int     `json:"slot"`
+	Type NameUrl `json:"type"`
+}
+
+type Pokemon struct {
+	Id             int         `json:"id"`
+	Name           string      `json:"name"`
+	BaseExperience int         `json:"base_experience"`
+	Height         int         `json:"height"`
+	Weight         int         `json:"weight"`
+	IsDefault      bool        `json:"is_default"`
+	Order          int         `json:"order"`
+	Abilities      []Ability   `json:"abilities"`
+	Cries          Cries       `json:"cries"`
+	Forms          []NameUrl   `json:"forms"`
+	GameIndices    []GameIndex `json:"game_indices"`
+	Moves          []Move      `json:"moves"`
+	Species        NameUrl     `json:"species"`
+	Sprites        Sprite      `json:"sprites"`
+	Stats          []Stat      `json:"stats"`
+	Types          []Type      `json:"types"`
+}
+
+type Resources struct {
 	Count    int       `json:"count"`
 	Next     string    `json:"next"`
 	Previous string    `json:"previous"`
 	Results  []NameUrl `json:"results"`
-}
-
-type UnnamedList struct {
-	Count    int    `json:"count"`
-	Next     string `json:"next"`
-	Previous string `json:"previous"`
-	Results  []Url  `json:"results"`
 }
 
 // NewClient creates a new HTTP client with default options.
@@ -164,87 +212,44 @@ func get(url string, duration time.Duration) (*http.Response, error) {
 func parseresponse(response *http.Response, structData interface{}) error {
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
+		logger.Println("error reading response body")
 		return fmt.Errorf("error reading response body: %w", err)
 	}
 
 	if err := json.Unmarshal(data, structData); err != nil {
+		logger.Println("error in json unmarshal")
 		return fmt.Errorf("error in json unmarshal: %w", err)
 	}
 	return nil
 }
 
-func (c *Client) GetPokemonAbility(id_name string) (*Ability, error) {
-	url := "https://pokeapi.co/api/v2/ability/" + id_name
+func (c *Client) GetResources(name string, limit, offset uint) (*Resources, error) {
+	url := "https://pokeapi.co/api/v2/" + name + "?limit=" + strconv.FormatUint(uint64(limit), 10) + "&offset=" + strconv.FormatUint(uint64(offset), 10)
+
 	response, err := get(url, c.timeout)
 	if err != nil {
 		return nil, err
 	}
-	ability := &Ability{}
-	if err := parseresponse(response, &ability); err != nil {
-		return nil, err
-	}
-	return ability, nil
-}
 
-func (c *Client) GetPokemonCharacteristic(id_name string, offset uint, limit uint) (*Characteristics, *NamedList, error) {
-	url := "https://pokeapi.co/api/v2/characteristic/"
-	if id_name != "" {
-		url += id_name
-		response, err := get(url, c.timeout)
-		if err != nil {
-			return nil, nil,err
-		}
-		characteristics := &Characteristics{}
-		if err := parseresponse(response, &characteristics); err != nil {
-			return nil, nil,err
-		}
-		return characteristics, &NamedList{},nil
-	}
-	url += "?limit=" + strconv.FormatUint(uint64(limit), 10) + "&offset=" + strconv.FormatUint(uint64(offset), 10)
-
-	response, err := get(url, c.timeout)
-	if err != nil {
-		return nil,nil, err
-	}
-
-	result := &NamedList{}
+	result := &Resources{}
 	if err := parseresponse(response, &result); err != nil {
-		return nil,nil, err
+		return nil, err
 	}
 
-	return &Characteristics{},result, nil
-
+	logger.Println("Resources recieved successfully")
+	return result, nil
 }
 
-func (c *Client) GetPokemonEggGroup(id_name string, offset uint, limit uint) (interface{}, error) {
-	url := "https://pokeapi.co/api/v2/egg-group/"
-	//url := "https://pokeapi.co/api/v2/characteristic/"
-
-	if id_name != "" {
-		url += id_name
-		response, err := get(url, c.timeout)
-		if err != nil {
-			return nil, err
-		}
-
-		egggroup := &EggGroup{}
-		if err := parseresponse(response, egggroup); err != nil {
-			return nil, err
-		}
-		return egggroup, nil
-	}
-
-	url += "?limit=" + strconv.FormatUint(uint64(limit), 10) + "&offset=" + strconv.FormatUint(uint64(offset), 10)
-
+func (c *Client) GetPokemon(id_name string) (*Pokemon, error) {
+	url := "https://pokeapi.co/api/v2/pokemon/" + id_name
 	response, err := get(url, c.timeout)
 	if err != nil {
 		return nil, err
 	}
-
-	result := &NamedList{}
-	if err := parseresponse(response, result); err != nil {
+	pokemon := &Pokemon{}
+	if err := parseresponse(response, &pokemon); err != nil {
 		return nil, err
 	}
-
-	return result.Results, nil
+	logger.Printf("Pokemon %s recieved successfully", id_name)
+	return pokemon, nil
 }
