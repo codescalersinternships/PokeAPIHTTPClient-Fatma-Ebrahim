@@ -21,58 +21,72 @@ var (
 	logger     = log.New(outfile, "", 0)
 )
 
+// Client is a HTTP client that consumes the Pokemon APIs.
 type Client struct {
 	client  *http.Client
 	timeout time.Duration
 }
 
+// Option is a functional option for the HTTP client.
 type Option func(*Client)
 
+// NameUrl struct represents a name and an URL.
 type NameUrl struct {
 	Name string `json:"name"`
 	Url  string `json:"url"`
 }
+
+// Ability struct represents pokemon ability
 type Ability struct {
 	Ability  NameUrl `json:"ability"`
 	IsHidden bool    `json:"is_hidden"`
 	Slot     int     `json:"slot"`
 }
 
+// Cries struct represents pokemon cries
 type Cries struct {
 	Latest string `json:"latest"`
 	Legacy string `json:"legacy"`
 }
 
+// GameIndex struct represents pokemon game index
 type GameIndex struct {
 	GameIndex int     `json:"game_index"`
 	Version   NameUrl `json:"version"`
 }
 
+// VersionDetail struct represents pokemon version
 type VersionDetail struct {
 	Rarity  int     `json:"rarity"`
 	Version NameUrl `json:"version"`
 }
 
+// HeldItem struct represents pokemon held item
 type HeldItem struct {
 	Item          NameUrl         `json:"item"`
 	VersionDetail []VersionDetail `json:"version_details"`
 }
 
+// VersionGroupDetail struct represents pokemon version group
 type VersionGroupDetail struct {
 	LevelLearnedAt  int     `json:"level_learned_at"`
 	MoveLearnMethod NameUrl `json:"move_learn_method"`
 	VersionGroup    NameUrl `json:"version_group"`
 }
 
+// Move struct represents pokemon move
 type Move struct {
 	Move                NameUrl              `json:"move"`
 	VersionGroupDetails []VersionGroupDetail `json:"version_group_details"`
 }
+
+// DreamWorld struct represents pokemon dream world sprites
 type DreamWorld struct {
 	FrontDefault string `json:"front_default"`
 	FrontFemale  string `json:"front_female"`
 }
 
+// Home struct represents pokemon home sprites
 type Home struct {
 	FrontDefault     string `json:"front_default"`
 	FrontFemale      string `json:"front_female"`
@@ -80,6 +94,7 @@ type Home struct {
 	FrontShinyFemale string `json:"front_shiny_female"`
 }
 
+// OfficialArtwork struct represents pokemon official-artwork sprites
 type OfficialArtwork struct {
 	FrontDefault string `json:"front_default"`
 	FrontShiny   string `json:"front_shiny"`
@@ -95,13 +110,16 @@ type Showdown struct {
 	FrontShiny       string `json:"front_shiny"`
 	FrontShinyFemale string `json:"front_shiny_female"`
 }
-type other struct {
+
+// Other struct represents pokemon other sprites
+type Other struct {
 	DreamWorld      DreamWorld      `json:"dream_world"`
 	Home            Home            `json:"home"`
 	OfficialArtwork OfficialArtwork `json:"official-artwork"`
 	Showdown        Showdown        `json:"showdown"`
 }
 
+// Sprite struct represents pokemon sprite
 type Sprite struct {
 	BackDefault      string `json:"back_default"`
 	BackFemale       string `json:"back_female"`
@@ -111,20 +129,23 @@ type Sprite struct {
 	FrontFemale      string `json:"front_female"`
 	FrontShiny       string `json:"front_shiny"`
 	FrontShinyFemale string `json:"front_shiny_female"`
-	Other            other  `json:"other"`
+	Other            Other  `json:"other"`
 }
 
+// Stat struct represents pokemon stat
 type Stat struct {
 	BaseStat int     `json:"base_stat"`
 	Effort   int     `json:"effort"`
 	Stat     NameUrl `json:"stat"`
 }
 
+// Type struct represents pokemon type
 type Type struct {
 	Slot int     `json:"slot"`
 	Type NameUrl `json:"type"`
 }
 
+// Pokemon struct represents pokemon
 type Pokemon struct {
 	Id             int         `json:"id"`
 	Name           string      `json:"name"`
@@ -144,6 +165,7 @@ type Pokemon struct {
 	Types          []Type      `json:"types"`
 }
 
+// Resources struct represents resources for all pokemon APIs
 type Resources struct {
 	Count    int       `json:"count"`
 	Next     string    `json:"next"`
@@ -209,7 +231,7 @@ func get(url string, duration time.Duration) (*http.Response, error) {
 	return response, nil
 }
 
-func parseresponse(response *http.Response, structData interface{}) error {
+func parseResponse(response *http.Response, structData interface{}) error {
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
 		logger.Println("error reading response body")
@@ -223,8 +245,9 @@ func parseresponse(response *http.Response, structData interface{}) error {
 	return nil
 }
 
+// GetResources is a method that returns a list of resources with a certain limit and offset parameters
 func (c *Client) GetResources(name string, limit, offset uint) (*Resources, error) {
-	url := "https://pokeapi.co/api/v2/" + name + "?limit=" + strconv.FormatUint(uint64(limit), 10) + "&offset=" + strconv.FormatUint(uint64(offset), 10)
+	url := "https://pokeapi.co/api/v2/" + name + "/?limit=" + strconv.FormatUint(uint64(limit), 10) + "&offset=" + strconv.FormatUint(uint64(offset), 10)
 
 	response, err := get(url, c.timeout)
 	if err != nil {
@@ -232,7 +255,7 @@ func (c *Client) GetResources(name string, limit, offset uint) (*Resources, erro
 	}
 
 	result := &Resources{}
-	if err := parseresponse(response, &result); err != nil {
+	if err := parseResponse(response, &result); err != nil {
 		return nil, err
 	}
 
@@ -240,6 +263,7 @@ func (c *Client) GetResources(name string, limit, offset uint) (*Resources, erro
 	return result, nil
 }
 
+// GetPokemon is a method that returns a pokemon using its name or id.
 func (c *Client) GetPokemon(id_name string) (*Pokemon, error) {
 	url := "https://pokeapi.co/api/v2/pokemon/" + id_name
 	response, err := get(url, c.timeout)
@@ -247,7 +271,7 @@ func (c *Client) GetPokemon(id_name string) (*Pokemon, error) {
 		return nil, err
 	}
 	pokemon := &Pokemon{}
-	if err := parseresponse(response, &pokemon); err != nil {
+	if err := parseResponse(response, &pokemon); err != nil {
 		return nil, err
 	}
 	logger.Printf("Pokemon %s recieved successfully", id_name)
