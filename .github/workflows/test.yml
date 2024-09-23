@@ -14,7 +14,7 @@ jobs:
               uses: actions/setup-go@v5
 
             - name: Build
-              run: go build main.go
+              run: go build ./cmd/main.go
     
     golangci:
         runs-on: ubuntu-latest
