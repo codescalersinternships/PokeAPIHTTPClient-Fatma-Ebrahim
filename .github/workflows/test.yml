@@ -1,0 +1,46 @@
+name: gotest
+on:
+    push:
+    pull_request:
+    
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+
+            - name: Build
+              run: go build ./cmd/main.go
+    
+    golangci:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+
+            - name: Format
+              run: go fmt ./...
+
+            - name: golangci-lint
+              uses: golangci/golangci-lint-action@v6
+              with:
+                version: v1.60
+
+    testing:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+
+            - name: Test
+              run: go test ./test
